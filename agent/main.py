@@ -3,36 +3,31 @@ from watchdog.events import FileSystemEventHandler
 import time
 import redis
 import json
+from pymongo import MongoClient
+
+client = MongoClient("mongodb://localhost:27017")
+
+db = client["repository"]
+collection = db["app"]
 
 r = redis.Redis(host="localhost", port=6379, decode_responses=True)
 
 
-class Handler(FileSystemEventHandler):
-    def on_modified(self, event):
-        if event.is_directory:
-            return
+# def on_modified(self):
+#     payload = {
+#         "type": "FILE_MODIFIED",
+#         "path": path,
+#     }
 
-        payload = {
-            "type": "FILE_MODIFIED",
-            "path": event.src_path,
-        }
-
-        r.publish("repository.events", json.dumps(payload))
-        print("Published:", payload)
+#     r.publish("repository.events", json.dumps(payload))
+#     print("Published:", payload)
 
 
 if __name__ == "__main__":
-    path = "../app"
-    observer = Observer()
-    observer.schedule(Handler(), path, recursive=True)
-    observer.start()
+    print("Watching for insert changes...")
 
-    print(f"Observing {path} for changes")
+    pipeline = [{"$match": {"operationType": "insert"}}]
 
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        observer.stop()
-
-    observer.join()
+    with collection.watch(pipeline) as stream:
+        for change in stream:
+            print(change)

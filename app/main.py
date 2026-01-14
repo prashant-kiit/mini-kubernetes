@@ -10,5 +10,5 @@ PORT: int = int(os.getenv("PORT", "8000"))
 
 @app.get("/health")
 def health():
-    print(f"Health status from {HOST}:{PORT}")
+    print(f"Health status on {HOST}:{PORT}")
     return {"status": "ok", "host": HOST, "port": PORT}
