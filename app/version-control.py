@@ -12,6 +12,8 @@ with open("version-control.ignore", "r") as f:
 
 EXCLUDE = [line.strip() for line in lines]
 
+collection.delete_many({})
+
 for name in os.listdir("./"):
     path = os.path.join("./", name)
 
